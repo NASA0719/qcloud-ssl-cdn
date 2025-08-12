@@ -51,7 +51,7 @@ jobs:
         run: exit 1 # sh ./docker/update.sh
 
       - name: Bark Notification
-        if: always() && env.HAS_BARK
+        if: always() && env.HAS_BARK == 'true'
         uses: monlor/bark-action@v3
         with:
           host: ${{ secrets.BARK_HOST }}
@@ -64,11 +64,12 @@ jobs:
           icon: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
 
       - name: Telegram Notification
-        if: always() && env.HAS_TELEGRAM
+        if: always() && env.HAS_TELEGRAM == 'true'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.CHAT_ID }}
           token: ${{ secrets.BOT_TOKEN }}
+          format: markdown
           message: |
             *📢 证书更新通知 [${{ job.status }}]*
 
