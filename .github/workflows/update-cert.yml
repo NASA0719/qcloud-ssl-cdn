@@ -3,12 +3,14 @@ name: Update Cert
 on:
   schedule:
     - cron: '0 10 1 * *'
-  # add a tag to trigger manually
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_TELEGRAM: ${{ secrets.CHAT_ID != '' && secrets.BOT_TOKEN != '' }}
+      HAS_BARK: ${{ secrets.BARK_KEY != '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,9 +20,14 @@ jobs:
           curl https://get.acme.sh | sh -s email=my@example.com
           pip install -r requirements.txt
 
+      - name: Get Current Time
+        id: get-current-time
+        env:
+          TZ: ${{ secrets.TIMEZONE || 'Asia/Shanghai' }}
+        run: echo "time=$(date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
       - name: Update Cert
         env:
-          # 环境变量根据实际情况自行修改或增删，未设置则使用默认值（参见update.sh）
           DP_Id: ${{ secrets.DP_Id }}
           DP_Key: ${{ secrets.DP_Key }}
           CF_Token: ${{ secrets.CF_TOKEN }}
@@ -41,18 +48,30 @@ jobs:
           CERT_HOME: /home/runner/.acme.sh
           ACME_HOME: /home/runner/.acme.sh
           WORK_DIR: .
-        run: sh ./docker/update.sh
+        run: exit 1 # sh ./docker/update.sh
 
-      - name: Notification
+      - name: Bark Notification
+        if: always() && env.HAS_BARK
         uses: monlor/bark-action@v3
-        if: always()
         with:
-          host: ${{ secrets.BARK_HOST}} # not required
-          key: ${{ secrets.BARK_KEY }}   # Your secret key
+          host: ${{ secrets.BARK_HOST }}
+          key: ${{ secrets.BARK_KEY }}
           title: Github Actions
           body: 'Your tencent cdn certs update ${{ job.status }}！'
           isArchive: 1
           url: 'github://github.com/${{ github.repository }}'
           group: Github
           icon: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          copy: ${{ steps.meta.outputs.tags }}
+
+      - name: Telegram Notification
+        if: always() && env.HAS_TELEGRAM
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.BOT_TOKEN }}
+          message: |
+            *📢 证书更新通知 [${{ job.status }}]*
+
+            *🕒 时间*: ${{ steps.get-current-time.outputs.time }}
+            *📊 状态*: ${{ job.status == 'success' && '✅ 证书更新成功' || '❌ 证书更新失败' }}
+            *🔗 查看运行*: [点击查看详情](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
