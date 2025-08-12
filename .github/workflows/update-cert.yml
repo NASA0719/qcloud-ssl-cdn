@@ -48,7 +48,7 @@ jobs:
           CERT_HOME: /home/runner/.acme.sh
           ACME_HOME: /home/runner/.acme.sh
           WORK_DIR: .
-        run: exit 1 # sh ./docker/update.sh
+        run: sh ./docker/update.sh
 
       - name: Bark Notification
         if: always() && env.HAS_BARK == 'true'
@@ -67,12 +67,12 @@ jobs:
         if: always() && env.HAS_TELEGRAM == 'true'
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.CHAT_ID }}
-          token: ${{ secrets.BOT_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            *📢 证书更新通知 [${{ job.status }}]*
+            *📢 腾讯云CDN证书更新*
 
             *🕒 时间*: ${{ steps.get-current-time.outputs.time }}
-            *📊 状态*: ${{ job.status == 'success' && '✅ 证书更新成功' || '❌ 证书更新失败' }}
-            *🔗 查看运行*: [点击查看详情](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            *📊 状态*: ${{ job.status == 'success' && '证书更新成功' || '证书更新失败' }}
+            *🔗 日志*: [点击查看详情](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
