@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      HAS_TELEGRAM: ${{ secrets.CHAT_ID != '' && secrets.BOT_TOKEN != '' }}
+      HAS_TELEGRAM: ${{ secrets.TELEGRAM_CHAT_ID != '' && secrets.TELEGRAM_BOT_TOKEN != '' }}
       HAS_BARK: ${{ secrets.BARK_KEY != '' }}
     steps:
       - name: Checkout repository
@@ -71,8 +71,8 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            *📢 腾讯云CDN证书更新*
+            * 腾讯云CDN证书更新*
 
-            *🕒 时间*: ${{ steps.get-current-time.outputs.time }}
-            *📊 状态*: ${{ job.status == 'success' && '证书更新成功' || '证书更新失败' }}
-            *🔗 日志*: [点击查看详情](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            * 时间*: ${{ steps.get-current-time.outputs.time }}
+            * 状态*: ${{ job.status == 'success' && '证书更新成功' || '证书更新失败' }}
+            * 日志*: [点击查看详情](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
